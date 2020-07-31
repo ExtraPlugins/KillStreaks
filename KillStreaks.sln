@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KillStreaks", "KillStreaks.csproj", "{594AAC26-8F96-4E60-A11C-82D2FB1C6B67}"
 EndProject
@@ -20,6 +20,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {7FD3A334-315E-47A4-8442-EFE7F5500F88}
+		SolutionGuid = {07366BAA-AD6C-4D33-B4B7-8C178F2B5C67}
 	EndGlobalSection
 EndGlobal
