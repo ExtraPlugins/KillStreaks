@@ -7,6 +7,7 @@ using Rocket.Unturned.Chat;
 using Rocket.Unturned.Events;
 using Rocket.Unturned.Player;
 using Steamworks;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,12 +27,6 @@ namespace ExtraConcentratedJuice.KillStreaks
         {
             instance = this;
 
-            if (!File.Exists(KSFILEPATH))
-            {
-                Logger.Log("Datafile not found, creating one now...");
-                File.Create(KSFILEPATH).Dispose();
-            }
-
             Logger.Log("---------------------------");
             Logger.Log("Extra's KillStreaks Loaded!");
             Logger.Log("---------------------------");
@@ -41,7 +36,15 @@ namespace ExtraConcentratedJuice.KillStreaks
                 Logger.Log(" Restart persistence enabled, loading data...");
                 try
                 {
-                    killCount = DeserializePlayerDict();
+                    if (!File.Exists(KSFILEPATH))
+                    {
+                        Logger.Log("Datafile not found, creating one now...");
+                        File.Create(KSFILEPATH).Dispose();
+                    }
+                    else
+                    {
+                        killCount = DeserializePlayerDict();
+                    }
                 }
                 catch (XmlException)
                 {
@@ -87,43 +90,28 @@ namespace ExtraConcentratedJuice.KillStreaks
             {
                 players.Add(new KSPlayer(kv.Key, kv.Value));
             }
-            XmlSerializer serializer = new XmlSerializer(typeof(List<KSPlayer>));
+            var ksplayers = new KSPlayers(players);
+            XmlSerializer serializer = new XmlSerializer(typeof(KSPlayers));
             using (TextWriter stream = new StreamWriter(KSFILEPATH, false))
             {
-                serializer.Serialize(stream, players);
+                serializer.Serialize(stream, ksplayers);
             }
         }
 
         public static Dictionary<string, int> DeserializePlayerDict()
         {
-            Dictionary<string, int> dict = new Dictionary<string, int>();
-            XmlSerializer serializer = new XmlSerializer(typeof(List<KSPlayer>));
-            List<KSPlayer> players;
-            using (TextReader stream = new StreamReader(KSFILEPATH))
+            KSPlayers ksPlayers;
+            var dict = new Dictionary<string, int>();
+            XmlSerializer serializer = new XmlSerializer(typeof(KSPlayers));
+            using (var stream = new StreamReader(KSFILEPATH))
             {
-                players = (List<KSPlayer>)serializer.Deserialize(stream);
+                ksPlayers = (KSPlayers)serializer.Deserialize(stream);
             }
-            foreach (KSPlayer player in players)
+            foreach (var player in ksPlayers.ksplayers)
             {
                 dict[player.Id] = player.Kills;
             }
             return dict;
-        }
-
-        public class KSPlayer
-        {
-            public string Id;
-            public int Kills;
-
-            public KSPlayer()
-            {
-            }
-
-            public KSPlayer(string id, int kills)
-            {
-                Id = id;
-                Kills = kills;
-            }
         }
 
         private void OnConnected(UnturnedPlayer player)
@@ -200,4 +188,33 @@ namespace ExtraConcentratedJuice.KillStreaks
                     {"killstreak_remove", "[KillStreaks] Your killstreak has been reset."},
                 };
     }
+    [Serializable]
+    public class KSPlayer
+    {
+        [XmlAttribute("ID")]
+        public string Id;
+        [XmlAttribute("Kills")]
+        public int Kills;
+        public KSPlayer() { }
+        public KSPlayer(string id, int kills)
+        {
+            Id = id;
+            Kills = kills;
+        }
+    }
+
+    [Serializable]
+    [XmlRoot("KillStreakData")]
+    public class KSPlayers
+    {
+        [XmlArray("KillStreakPlayers"), XmlArrayItem("KillStreakPlayer")]
+        public List<KSPlayer> ksplayers;
+
+        public KSPlayers() { }
+        public KSPlayers(List<KSPlayer> Ksplayers)
+        {
+            ksplayers = Ksplayers;
+        }
+    }
+
 }
